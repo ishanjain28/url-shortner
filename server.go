@@ -145,6 +145,7 @@ func GetLastID(db *sql.DB) (int, error) {
 		log.Fatalln(err)
 		return 0, err
 	}
+	defer rows.Close()
 	row := DBRow{}
 	for rows.Next() {
 		err := rows.Scan(&row.id)
@@ -195,6 +196,7 @@ func FindAndRedirect(hash string, db *sql.DB) (string, error) {
 		log.Fatalf("Errored: %s", err)
 		return "", err
 	}
+	defer rows.Close()
 	dbrow := DBRow{}
 
 	a := rows.Next()
