@@ -9,6 +9,8 @@ import (
 	"strings"
 	"net/url"
 	"errors"
+	"fmt"
+	"strconv"
 )
 
 type HTTPRequest struct {
@@ -33,6 +35,8 @@ var base62Chars = []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"
 						   "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q",
 						   "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
 
+var rowNumber int
+
 func main() {
 	// Set up the Schema
 	// Creates a database if one does not exists
@@ -41,6 +45,11 @@ func main() {
 		log.Fatalf("Error Occurred: %s", err)
 	}
 	defer db.Close()
+
+	rowNumber, err = GetLastID(db)
+	if err != nil {
+		log.Fatalf("Error in fetching last id; %s", err)
+	}
 	// Start listening on PORT 5001
 	ln, err := net.Listen("tcp", ":5001")
 	if err != nil {
@@ -52,10 +61,12 @@ func main() {
 			go handleConnection(conn, db)
 		}
 	}
+
 }
 
 func handleConnection(conn net.Conn, db *sql.DB) {
 	defer conn.Close()
+
 	// Create a read buffer
 	reader := bufio.NewReader(conn)
 	// Read the first line.
@@ -123,12 +134,13 @@ func ParseHTTPRequest(reqString string) (*HTTPRequest, *Error) {
 }
 
 func InsertURLInDB(hash string, longurl string, db *sql.DB) error {
-	query := "INSERT INTO " + table_name + "(hash, longurl) values(\"" + hash + "\", \"" + longurl + "\");"
+	//"INSERT INTO Url_list (id, hash, longurl) values (465, "ishan", "test1");"
+	query := "INSERT INTO " + table_name + "(id, hash, longurl) values(" + strconv.Itoa(rowNumber) + ", \"" + hash + "\", \"" + longurl + "\");"
 	queryResult, err := db.Exec(query)
 	if err != nil {
 		log.Fatalln(err)
 		return err
-	}
+	}	
 	_, err = queryResult.RowsAffected()
 	if err != nil {
 		log.Printf("Errored: %s", err)
@@ -172,12 +184,9 @@ func GenerateShortHash(LastID int) string {
 }
 
 func SubmitURL(longurl string, db *sql.DB) (string, error) {
-	LastIDInDB, err := GetLastID(db)
-	if err != nil {
-		log.Fatalf("Error Occurred in getting last id", err)
-		return "", err
-	}
-	Hash := GenerateShortHash(LastIDInDB)
+	Hash := GenerateShortHash(rowNumber)
+	rowNumber++
+	fmt.Println(rowNumber)
 	error := InsertURLInDB(Hash, longurl, db)
 	if error != nil {
 

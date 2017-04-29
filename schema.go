@@ -8,12 +8,12 @@ import (
 )
 
 func SetUpSchema() (dbInstance *sql.DB, error error) {
-	db, err := sql.Open("sqlite3", path.Join("./data/urls.db"))
+	db, err := sql.Open("sqlite3", path.Join("./data/urls.db")+"?cache=shared&mode=rwc")
 	if err != nil {
 		log.Fatalf("Error Occurred in creating Schema: %s", err)
 	}
 
-	createTable := `create table ` + table_name + ` (id INTEGER PRIMARY KEY AUTOINCREMENT, hash varchar(14), longurl varchar(200))`
+	createTable := `create table ` + table_name + ` (id INTEGER PRIMARY KEY, hash varchar(14), longurl varchar(200))`
 	_, err = db.Exec(createTable)
 
 	if error, ok := err.(sqlite3.Error); ok {
