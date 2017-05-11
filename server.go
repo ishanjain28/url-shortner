@@ -14,11 +14,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Error struct {
-	msg  string
-	code int
-}
-
 type DBRow struct {
 	id      int
 	hash    string
@@ -80,7 +75,7 @@ func main() {
 				fmt.Println(err.Error())
 			}
 			rowNumber++
-			fmt.Fprintf(w, `{"error": 0, "shorturl":`+WEBSITE_ADDR+"/"+hash+"}")
+			fmt.Fprintf(w, `{"error": 0, "shorturl":"http://`+WEBSITE_ADDR+"/"+hash+"\"}")
 		} else {
 			fmt.Fprintf(w, `{"error":1, "message": "URL Not Provided"}`)
 		}
@@ -90,7 +85,7 @@ func main() {
 }
 
 func SetUpSchema() (dbInstance *sql.DB, error error) {
-	db, err := sql.Open("sqlite3", path.Join("./data/urls.db")+"?cache=shared&mode=rwc")
+	db, err := sql.Open("sqlite3", path.Join("./urls.db")+"?cache=shared&mode=rwc")
 	if err != nil {
 		log.Fatalf("Error Occurred in creating Schema: %s", err)
 	}
@@ -107,10 +102,10 @@ func SetUpSchema() (dbInstance *sql.DB, error error) {
 
 func InsertURLInDB(hash string, longurl string, db *sql.DB) error {
 
-	if bool(strings.Index(longurl, "http://")) || bool(strings.Index(longurl, "https://")) {
-
+	if strings.Index(longurl, "http://") == -1 || strings.Index(longurl, "https://") == -1 {
+		longurl = "http://" + longurl
 	}
-	//"INSERT INTO Url_list (id, hash, longurl) values (465, "ishan", "test1");"
+	//"INSERT INTO url_list (id, hash, longurl) values (465, "ishan", "test1");"
 	query := "INSERT INTO " + table_name + "(id, hash, longurl) values(" + strconv.Itoa(rowNumber) + ", \"" + hash + "\", \"" + longurl + "\");"
 	queryResult, err := db.Exec(query)
 	if err != nil {
@@ -158,19 +153,8 @@ func GenerateShortHash(LastID int) string {
 	return strings.Join(hash[:], "")
 }
 
-func SubmitURL(longurl string, db *sql.DB) (string, error) {
-	Hash := GenerateShortHash(rowNumber)
-	rowNumber++
-	error := InsertURLInDB(Hash, longurl, db)
-	if error != nil {
-
-	}
-	shorturl := "http://localhost:5000/" + Hash
-	return shorturl, nil
-}
-
 func FindURLInDB(hash string, db *sql.DB) (string, error) {
-	// Little hack to prevent from noobish SQL injection.
+
 	hash = strings.Split(hash, " ")[0]
 
 	query := `SELECT longurl from ` + table_name + ` where hash="` + hash + "\""

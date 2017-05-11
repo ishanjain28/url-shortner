@@ -24,3 +24,7 @@ _testmain.go
 *.prof
 .idea
 data/urls.db
+data
+data/urls.db
+*.db
+*.db-journal
