@@ -28,3 +28,5 @@ data
 data/urls.db
 *.db
 *.db-journal
+
+url-shortner

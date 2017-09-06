@@ -1,17 +1,19 @@
 package main
 
 import (
-	"log"
 	"database/sql"
-	"strings"
 	"errors"
 	"fmt"
-	"strconv"
-	"path"
-	"github.com/mattn/go-sqlite3"
+	"log"
 	"net/http"
+	"os"
+	"path"
+	"strconv"
+	"strings"
 	"sync"
+
 	"github.com/gorilla/mux"
+	"github.com/mattn/go-sqlite3"
 )
 
 type DBRow struct {
@@ -22,19 +24,27 @@ type DBRow struct {
 
 const table_name string = "url_list"
 
-var WEBSITE_ADDR string
-
 var base62Chars = []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
-						   "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q",
-						   "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
+	"u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q",
+	"R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
+
+var PORT = os.Getenv("PORT")
+var WEBSITE_ADDR = os.Getenv("HOST")
 
 var rowNumber int
 var mutex = &sync.Mutex{}
 
-func main() {
+func init() {
+	if PORT == "" {
+		log.Fatalln("$PORT not set")
+	}
 
-	fmt.Printf("Enter Website Address: ")
-	fmt.Scanf("%s\n", &WEBSITE_ADDR)
+	if WEBSITE_ADDR == "" {
+		log.Fatalln("$HOST not set")
+	}
+}
+
+func main() {
 
 	db, err := SetUpSchema()
 	if err != nil {
@@ -81,7 +91,7 @@ func main() {
 		}
 	})
 
-	http.ListenAndServe(":8080", router)
+	http.ListenAndServe(fmt.Sprintf(":%s", PORT), router)
 }
 
 func SetUpSchema() (dbInstance *sql.DB, error error) {
