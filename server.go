@@ -87,7 +87,7 @@ func main() {
 			rowNumber++
 			fmt.Fprintf(w, `{"error": 0, "shorturl":"http://`+WEBSITE_ADDR+"/"+hash+"\"}")
 		} else {
-			fmt.Fprintf(w, `{"error":1, "message": "URL Not Provided"}`)
+			fmt.Fprintf(w, `<html><head><title>URL Shortner Microservice</title></head><body><h2>To create a shorturl of any URL, Send a GET request to https://fcc-shorten-urls.herokuapp.com/?url=<url>. You'll receive a JSON in response with the shorturl in it.</h2> <a href="https://github.com/ishanjain28/url-shortner">Github</a></body></html> `)
 		}
 	})
 
